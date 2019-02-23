@@ -1,0 +1,28 @@
+{
+  "name": "ccxt-trade-mgr",
+  "version": "0.1.0",
+  "description": "Trade Manager for CCXT",
+  "main": "index.js",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "ccxt": "^1.18.288",
+    "mongo": "^0.1.0",
+    "mongodb": "^3.1.13",
+    "neo-blessed": "^0.2.0",
+    "sleep": "^6.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/notlesh/ccxt-trade-mgr.git"
+  },
+  "author": "Stephen Shelton",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/notlesh/ccxt-trade-mgr/issues"
+  },
+  "homepage": "https://github.com/notlesh/ccxt-trade-mgr#readme"
+}
