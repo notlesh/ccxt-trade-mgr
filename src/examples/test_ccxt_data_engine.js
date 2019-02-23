@@ -1,5 +1,5 @@
-const DataEngine = require('../ccxt_data_engine');
-const Database = require('../database');
+const DataEngine = require('../server/ccxt_data_engine');
+const Database = require('../server/database');
 
 const main = async function() {
 	console.log("main()...");

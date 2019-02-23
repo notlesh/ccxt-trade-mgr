@@ -74,6 +74,13 @@ class DataEngine {
 			self.running = false;
 		}, 1000);
 	}
+
+	/**
+	 * Returns the current ticker cache.
+	 */
+	getLatestTickerData() {
+		return this.tickerCache;
+	}
 }
 
 module.exports = DataEngine;
