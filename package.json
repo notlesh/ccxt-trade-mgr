@@ -6,6 +6,7 @@
   "dependencies": {
     "blessed": "^0.1.81",
     "ccxt": "^1.18.288",
+    "config": "^3.0.1",
     "jayson": "^2.1.2",
     "mongo": "^0.1.0",
     "mongodb": "^3.1.13",

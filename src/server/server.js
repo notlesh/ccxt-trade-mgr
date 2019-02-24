@@ -9,6 +9,7 @@ const sleep = require('sleep');
 
 const Database = require('./database');
 const DataEngine = require('./ccxt_data_engine');
+const Config = require('./config');
 
 class Server {
 	constructor() {
@@ -16,22 +17,13 @@ class Server {
 
 		this.running = false;
 
+		this.config = new Config();
+		this.config.loadConfigFromFile();
+
 		this.database = new Database({});
 		this.database.open(); // TODO: this is async...
 
-		this.dataEngine = new DataEngine(
-		{
-			exchanges: [ "kraken", "binance" ],
-			watchlist: {
-				kraken: [
-					"BTC/USD",
-					"ETH/USD",
-				],
-				binance: [
-					"TRX/BTC",
-				],
-			},
-		});
+		this.dataEngine = new DataEngine(this.config.getExchangeList(), this.config.getWatchlist());
 		this.dataEngine.start();
 
 		// define JSON RPC functionality

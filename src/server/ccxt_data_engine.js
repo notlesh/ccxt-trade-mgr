@@ -8,15 +8,14 @@ const assert = require('assert');
 const sleep = require('sleep');
 
 class DataEngine {
-	constructor(config) {
-		this.config = config;
+	constructor(exchangeConfig, watchlist) {
+		this.config = { exchanges: exchangeConfig, watchlist: watchlist };
 		// TODO: validate?
 
 		this.running = false;
 
 		this.exchanges = {};
 		this.tickerCache = {};
-		
 	}
 
 	/**
@@ -36,8 +35,24 @@ class DataEngine {
 			for (let exchange of self.config.exchanges) {
 
 				// initialize each exchange we will need to work with
-				const classObject = ccxt[exchange]
-				self.exchanges[exchange] = new classObject();
+				// we expect the string from the config to match a class in ccxt,
+				// for example "binance" would match ccxt.binance
+				const classObject = ccxt[exchange.name]
+				console.log("Initializing exchange "+ exchange.name);
+				if (classObject === 'undefined') {
+					throw new Error("Exchange "+ exchange.name +" not recognized / supported");
+				}
+
+				// we pass the config object verbatim, which allows our config file to support anything
+				// that CCXT supports (e.g. enableRateLimit: true)
+				self.exchanges[exchange.name] = new classObject(exchange);
+
+				// if config specifies apiKey/secret key, print out account balance
+				if (exchange.hasOwnProperty("secret")) {
+					self.exchanges[exchange.name].fetchBalance().then((balance) => {
+						console.log("Account balance for "+ exchange.name +": ", balance);
+					});
+				}
 			}
 
 			// now query exchange for data

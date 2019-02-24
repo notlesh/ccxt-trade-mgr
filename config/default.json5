@@ -1,0 +1,19 @@
+{ 
+	server: {
+		listenPort: 5280
+	},
+	exchanges: [
+		{ name: "binance" },
+		{ name: "kraken" }
+	],
+	watchlist: {
+		binance: [
+			"BNB/BTC"
+		],
+		kraken: [
+			"BTC/USD",
+			"ETH/USD"
+		]
+	}
+
+}
