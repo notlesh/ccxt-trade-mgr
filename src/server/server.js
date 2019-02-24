@@ -54,6 +54,12 @@ class Server {
 				callback({code: 501, message: 'not implemented yet'});
 			}
 		});
+		this.jsonRpcServer.on("request", (request) => {
+			console.log("received request: ", request);
+		});
+		this.jsonRpcServer.on("response", (request, response) => {
+			console.log("sent response: ", response);
+		});
 	}
 
 	start() {
