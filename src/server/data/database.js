@@ -6,6 +6,8 @@
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 
+const Schema = require('./schema');
+
 const mongoUrl = 'mongodb://localhost:27017';
 const dbName = 'ccxt_mgr';
 
@@ -49,6 +51,7 @@ class Database {
 	 * Operations on "positions"
 	 */
 	async insertPosition(position) {
+		await Schema.position.validate(position);
 		const result = await this.dbCollections.positions.insertOne(position);
 		return result.insertedId;
 	}

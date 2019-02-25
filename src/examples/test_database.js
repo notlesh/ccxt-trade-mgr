@@ -1,5 +1,5 @@
 const DataEngine = require('../server/ccxt_data_engine');
-const Database = require('../server/database');
+const Database = require('../server/data/database');
 
 const main = async function() {
 	console.log("main()...");
@@ -7,11 +7,23 @@ const main = async function() {
 	const database = new Database();
 	await database.open();
 	console.log("Connected!");
-	await database.insertPosition({name: "pos0"});
-	await database.insertPosition({name: "pos1"});
-	await database.insertPosition({name: "pos2"});
-	await database.insertPosition({name: "pos3"});
-	await database.insertPosition({name: "pos4"});
+	await database.insertPosition( {
+			exchange: "binance",
+			pair: "BNB/BTC",
+			direction: "long",
+			entries: [
+				{entry: 0.001, amount: 0.01},
+				{entry: 0.0009, amount: 0.02},
+				{entry: 0.0008, amount: 0.02},
+			],
+			stoploss: 0.0005,
+			targets: [
+				{target: 0.0012, portion: 0.5},
+				{target: 0.0014, portion: 0.5},
+			],
+			rationale: "always a good idea"
+			
+		});
 
 	let allPositions = await database.listPositions();
 	console.log("Positions: ", allPositions);
