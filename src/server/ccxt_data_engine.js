@@ -102,7 +102,7 @@ class DataEngine {
 
 		console.log("openPosition()");
 		console.log("position: ", position);
-		await this.database.insertPosition(position);
+		return await this.database.insertPosition(position);
 	}
 }
 

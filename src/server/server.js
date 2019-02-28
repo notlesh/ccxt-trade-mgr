@@ -56,8 +56,8 @@ class Server {
 				});
 			},
 			openPosition: async function(args, callback) {
-				await that.dataEngine.openPosition(args[0]);
-				callback({code: 200, message: "Position created"});
+				const id = await that.dataEngine.openPosition(args[0]);
+				callback(null, {code: 200, message: ""+ id});
 			},
 
 

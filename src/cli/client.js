@@ -38,7 +38,7 @@ class Client {
 		return new Promise(function(resolve, reject) {
 			that.client.request('openPosition', [position], function(err, response) {
 				if (err) reject(err);
-				resolve(response.result);
+				resolve(response);
 			});
 		});
 	}

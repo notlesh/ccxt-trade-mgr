@@ -31,7 +31,6 @@ const parseTargetPoint = function(input) {
 
 	const pairs = input.split(',');
 	for (pair of pairs) {
-		console.log("pair: "+ pair);
 
 		const splits = pair.split("@");
 		if (splits.length != 2) {
@@ -77,7 +76,13 @@ const main = async function() {
 			console.log('');
 			console.log('Examples:');
 			console.log('  $ ctm -h localhost listPositions');
-			// console.log('  $ ctm -h localhost openPosition ETH/USD short 250.0 -sl 261.0 -tp 225,220.6,200');
+			console.log('  $ ctm -h localhost getPosition 5c77576ec1801547e4b15288');
+			console.log('  $ ctm openPosition --exchange kraken --pair ETHUSD \\');
+			console.log('                     --direction long \\');
+			console.log('                     --entries "(15@137.0),(15@138.5)"\\');
+			console.log('                     --stoploss 134.9 \\');
+			console.log('                     --targets "(0.5@194.8),(0.5@249.4)" \\');
+			console.log('                     --message "ETH to the moon!"');
 	});
 
 	program
@@ -132,11 +137,12 @@ const main = async function() {
 				rationale: args.message,
 			};
 
-			console.log("position obj: ", position);
+			// console.log("position obj: ", position);
 
 			await Schema.position.validate(position);
 
-			await client.openPosition(position);
+			const response = await client.openPosition(position);
+			console.log(response.result.message);
 		});
 
 	program.parse(process.argv);
