@@ -8,10 +8,54 @@ const program = require('commander');
 const sleep = require('sleep');
 
 const Client = require('./client');
+const Schema = require('../server/data/schema');
 
 client = null;
 
-const main = function() {
+/**
+ * Takes an input in the form of:
+ *
+ * (amount@target),(amount@target), ...
+ *
+ * and returns a JSON object like:
+ *
+ * [ { amount: X, target: Y }, { amount: A, target: B } ]
+ *
+ * TODO: revise -- is there a good convention/example to follow here?
+ */
+const parseTargetPoint = function(input) {
+
+	const regex = /[^\d.-]/g;
+
+	let targets = [];
+
+	const pairs = input.split(',');
+	for (pair of pairs) {
+		console.log("pair: "+ pair);
+
+		const splits = pair.split("@");
+		if (splits.length != 2) {
+			throw new Error("Error parsing input: "+ input);
+		}
+
+		const amountString = splits[0].replace(regex, '');
+		const targetString = splits[1].replace(regex, '');
+
+		const amount = parseFloat(amountString);
+		const target = parseFloat(targetString);
+
+		targets.push({
+			amount: amount,
+			target: target
+		});
+	}
+
+	// console.log("Parsed targets: ", targets);
+
+	return targets;
+}
+
+const main = async function() {
 
 	// TODO: this needs some clean up and testing, especially where corner cases
 	// might cause bad behavior (e.g. "oops, we just sold BTC for a penny.")
@@ -51,7 +95,48 @@ const main = function() {
 		.action(async () => {
 			await sleep.msleep(1);
 			const positions = await client.listPositions();
-			console.log(positions);
+			console.log(JSON.stringify(positions, null, 2));
+		});
+
+	program
+		.command('getPosition <id>')
+		.description('List all positions')
+		.action(async (positionId, cmd) => {
+			await sleep.msleep(1);
+			const positions = await client.getPosition(positionId);
+			console.log(JSON.stringify(positions, null, 2));
+		});
+
+	program
+		.command('openPosition')
+		.description('Open a new position')
+		.option('-e, --exchange [exchange]', 'Exchange to trade on')
+		.option('-p, --pair [pair]', 'Trading pair')
+		.option('-d, --direction [dir]', 'Trading direction ("short" or "long")')
+		.option('--entries [entries]', 'Entries as comma separated list of (amount@price)')
+		.option('-s, --stoploss [stoploss]', 'Stoploss point')
+		.option('--targets [targets]', 'Targets as comma separated list of (portion@price)')
+		.option('-m, --message [message]', 'Message for this trade (e.g. rationale)')
+		.action(async () => {
+			// await sleep.msleep(1);
+			// const positions = await client.listPositions();
+			const args = program.args[0];
+
+			const position = {
+				exchange: args.exchange,
+				pair: args.pair,
+				direction: args.direction,
+				entries: parseTargetPoint(args.entries),
+				stoploss: args.stoploss,
+				targets: parseTargetPoint(args.targets),
+				rationale: args.message,
+			};
+
+			console.log("position obj: ", position);
+
+			await Schema.position.validate(position);
+
+			await client.openPosition(position);
 		});
 
 	program.parse(process.argv);

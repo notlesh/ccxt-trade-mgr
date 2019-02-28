@@ -8,7 +8,8 @@ const assert = require('assert');
 const sleep = require('sleep');
 
 class DataEngine {
-	constructor(exchangeConfig, watchlist) {
+	constructor(database, exchangeConfig, watchlist) {
+		this.database = database;
 		this.config = { exchanges: exchangeConfig, watchlist: watchlist };
 		// TODO: validate?
 
@@ -95,6 +96,13 @@ class DataEngine {
 	 */
 	getLatestTickerData() {
 		return this.tickerCache;
+	}
+
+	async openPosition(position) {
+
+		console.log("openPosition()");
+		console.log("position: ", position);
+		await this.database.insertPosition(position);
 	}
 }
 

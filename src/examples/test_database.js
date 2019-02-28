@@ -12,14 +12,14 @@ const main = async function() {
 			pair: "BNB/BTC",
 			direction: "long",
 			entries: [
-				{entry: 0.001, amount: 0.01},
-				{entry: 0.0009, amount: 0.02},
-				{entry: 0.0008, amount: 0.02},
+				{target: 0.001, amount: 0.01},
+				{target: 0.0009, amount: 0.02},
+				{target: 0.0008, amount: 0.02},
 			],
 			stoploss: 0.0005,
 			targets: [
-				{target: 0.0012, portion: 0.5},
-				{target: 0.0014, portion: 0.5},
+				{target: 0.0012, amount: 0.5},
+				{target: 0.0014, amount: 0.5},
 			],
 			rationale: "always a good idea"
 			

@@ -19,8 +19,8 @@ const Schema = {
 
 		// entry point(s) -- array of {entry: <number>, amount: <number>}
 		entries: Joi.array().items( Joi.object().keys({
-				entry: Joi.number().greater(0).required(),
-				amount: Joi.number().greater(0).required()
+				amount: Joi.number().greater(0).required(),
+				target: Joi.number().greater(0).required()
 		})),
 
 
@@ -30,8 +30,8 @@ const Schema = {
 		// target(s) -- desired take-profit levels (array of {target: <number>, portion: <number>}
 		// TODO: additionally, portion should add up to exactly 1.0.
 		targets: Joi.array().items( Joi.object().keys({
-				target: Joi.number().greater(0).required(),
-				portion: Joi.number().greater(0).max(1.0).required()
+				amount: Joi.number().greater(0).max(1.0).required(),
+				target: Joi.number().greater(0).required()
 		})),
 
 		// rationale (text blob for describing reasons for this trade)

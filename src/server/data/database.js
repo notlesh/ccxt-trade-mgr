@@ -4,6 +4,7 @@
  *
  */
 const MongoClient = require('mongodb').MongoClient;
+const ObjectId = require('mongodb').ObjectID;
 const assert = require('assert');
 
 const Schema = require('./schema');
@@ -69,7 +70,7 @@ class Database {
 	async getPosition(id) {
 		const self = this;
 		return new Promise((resolve, reject) => {
-			self.dbCollections.positions.find({_id: id}).toArray((err, docs) => {
+			self.dbCollections.positions.find(ObjectId(id)).toArray((err, docs) => {
 				if (err) {
 					reject(err);
 				} else {

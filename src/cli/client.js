@@ -23,8 +23,24 @@ class Client {
 		});
 	}
 
+	async getPosition(id) {
+		const that = this;
+		return new Promise(function(resolve, reject) {
+			that.client.request('getPosition', [id], function(err, response) {
+				if (err) reject(err);
+				resolve(response.result);
+			});
+		});
+	}
+
 	async openPosition(position) {
-		throw new Error("Implement me!");
+		const that = this;
+		return new Promise(function(resolve, reject) {
+			that.client.request('openPosition', [position], function(err, response) {
+				if (err) reject(err);
+				resolve(response.result);
+			});
+		});
 	}
 
 	async getLatestPriceData() {

@@ -7,7 +7,7 @@ const assert = require('assert');
 const jayson = require('jayson');
 const sleep = require('sleep');
 
-const Database = require('./database');
+const Database = require('./data/database');
 const DataEngine = require('./ccxt_data_engine');
 const Config = require('./config');
 
@@ -23,10 +23,16 @@ class Server {
 		this.database = new Database({});
 		this.database.open(); // TODO: this is async...
 
-		this.dataEngine = new DataEngine(this.config.getExchangeList(), this.config.getWatchlist());
+		this.dataEngine = new DataEngine(
+			this.database,
+			this.config.getExchangeList(), 
+			this.config.getWatchlist());
 		this.dataEngine.start();
 
 		// define JSON RPC functionality
+		// TODO: make consistent distinctions here:
+		//       do we access database directly?
+		//       should we be going through dataEngine for some of these calls?
 		this.jsonRpcServer = jayson.server({
 			getLatestPriceData: function(args, callback) {
 				callback(null, that.dataEngine.getLatestTickerData());
@@ -40,19 +46,21 @@ class Server {
 			},
 			getPosition: function(args, callback) {
 
-				if (! args || ! args.id) {
+				if (! args[0]) {
 					callback({code: 400, message: 'id required'});
 					return;
 				}
 
-				that.database.getPosition(args.id).then((results) => {
+				that.database.getPosition(args[0]).then((results) => {
 					callback(null, results);
 				});
 			},
-			openPosition: function(args, callback) {
-				// TODO: need to define how this should work -- who validates, etc.
-				callback({code: 501, message: 'not implemented yet'});
-			}
+			openPosition: async function(args, callback) {
+				await that.dataEngine.openPosition(args[0]);
+				callback({code: 200, message: "Position created"});
+			},
+
+
 		});
 		this.jsonRpcServer.on("request", (request) => {
 			console.log("received request: ", request);
