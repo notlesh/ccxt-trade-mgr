@@ -71,7 +71,8 @@ class DataEngine {
 					if (watchlist) {
 						for (let symbol of watchlist) {
 							const ticker = await exchange.fetchTicker(symbol);
-							console.log(exchangeName +":"+ ticker.symbol
+							const now = new Date();
+							console.log(""+ now +" "+ exchangeName +":"+ ticker.symbol
 								+ ": "+ ticker.close);
 
 							// update our cache
@@ -81,7 +82,7 @@ class DataEngine {
 							self.tickerCache[exchangeName][symbol] = {
 								// TODO: determine what data we want to
 								// actually hang on to
-								timePulled: new Date(),
+								timePulled: now,
 								close: ticker.close
 							};
 							// TODO: evaluate managed positions
