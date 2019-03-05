@@ -82,7 +82,7 @@ class DataEngine {
 					}
 				}
 
-				await sleep.sleep(2);
+				await sleep.sleep(10);
 			}
 
 			// XXX: should only exit when told to do so
