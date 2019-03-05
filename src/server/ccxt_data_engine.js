@@ -33,25 +33,32 @@ class DataEngine {
 		const self = this;
 		let id = setTimeout(async function() {
 			console.log("Setting up ccxt exchanges");
-			for (let exchange of self.config.exchanges) {
+			for (let exchangeConf of self.config.exchanges) {
 
 				// initialize each exchange we will need to work with
 				// we expect the string from the config to match a class in ccxt,
 				// for example "binance" would match ccxt.binance
-				const classObject = ccxt[exchange.name]
-				console.log("Initializing exchange "+ exchange.name);
+				const classObject = ccxt[exchangeConf.name]
+				console.log("Initializing exchange "+ exchangeConf.name);
 				if (classObject === 'undefined') {
-					throw new Error("Exchange "+ exchange.name +" not recognized / supported");
+					throw new Error("Exchange "+ exchangeConf.name +" not recognized / supported");
 				}
 
 				// we pass the config object verbatim, which allows our config file to support anything
 				// that CCXT supports (e.g. enableRateLimit: true)
-				self.exchanges[exchange.name] = new classObject(exchange);
+				const exchange = new classObject(exchangeConf);
+				self.exchanges[exchangeConf.name] = exchange;
+
+				// if config JSON specifies test, update url...
+				// TODO: verify this will work with all exchanges
+				if (exchangeConf.test) {
+					exchange.urls['api'] = exchange.urls['test'];
+				}
 
 				// if config specifies apiKey/secret key, print out account balance
-				if (exchange.hasOwnProperty("secret")) {
-					self.exchanges[exchange.name].fetchBalance().then((balance) => {
-						console.log("Account balance for "+ exchange.name +": ", balance);
+				if (exchangeConf.hasOwnProperty("secret")) {
+					exchange.fetchBalance().then((balance) => {
+						console.log("Account balance for "+ exchangeConf.name +": ", balance);
 					});
 				}
 			}
