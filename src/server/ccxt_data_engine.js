@@ -125,21 +125,17 @@ class DataEngine {
 	}
 
 	/**
-	 * Open a position -- inserts into the database. The position
-	 * will be handled at a later time.
+	 * Position-related operations
 	 */
 	async openPosition(position) {
-		console.log("openPosition()");
-		console.log("position: ", position);
 		return await this.database.insertPosition(position);
 	}
-
-	/**
-	 * List all open positions
-	 */
 	async listOpenPositions() {
 		// TODO: set up proper query to select only open positions
 		return await this.database.listPositions();
+	}
+	async getPosition(id) {
+		return await this.database.getPosition(id);
 	}
 }
 

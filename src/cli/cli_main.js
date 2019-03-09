@@ -79,7 +79,7 @@ const main = async function() {
 			console.log('  $ ctm -h localhost getPosition 5c77576ec1801547e4b15288');
 			console.log('  $ ctm openPosition --exchange kraken --pair ETHUSD \\');
 			console.log('                     --direction long \\');
-			console.log('                     --entries "(15@137.0),(15@138.5)"\\');
+			console.log('                     --entries "(15@137.0),(15@138.5)" \\');
 			console.log('                     --stoploss 134.9 \\');
 			console.log('                     --targets "(0.5@194.8),(0.5@249.4)" \\');
 			console.log('                     --message "ETH to the moon!"');

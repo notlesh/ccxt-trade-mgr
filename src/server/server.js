@@ -30,35 +30,34 @@ class Server {
 		this.dataEngine.start();
 
 		// define JSON RPC functionality
-		// TODO: make consistent distinctions here:
-		//       do we access database directly?
-		//       should we be going through dataEngine for some of these calls?
 		this.jsonRpcServer = jayson.server({
 			getLatestPriceData: function(args, callback) {
 				callback(null, that.dataEngine.getLatestTickerData());
 			},
 
-			// database queries
-			listPositions: function(args, callback) {
-				that.database.listPositions().then((results) => {
-					callback(null, results);
-				});
+			// position-related API 
+			listPositions: async function(args, callback) {
+				const positions = await that.dataEngine.listOpenPositions();
+				callback(null, {code: 200, message: positions});
 			},
-			getPosition: function(args, callback) {
+			getPosition: async function(args, callback) {
 
-				if (! args[0]) {
+				const id = args[0];
+				if (! id) {
 					callback({code: 400, message: 'id required'});
 					return;
 				}
 
-				that.database.getPosition(args[0]).then((results) => {
-					callback(null, results);
-				});
+				const position = await that.dataEngine.getPosition(id);
+				callback(null, {code: 200, message: position});
 			},
 			openPosition: async function(args, callback) {
-				const id = await that.dataEngine.openPosition(args[0]);
+				const position = args[0];
+				const id = await that.dataEngine.openPosition(position);
 				callback(null, {code: 200, message: ""+ id});
 			},
+
+
 
 
 		});
