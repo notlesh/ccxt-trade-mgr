@@ -1,6 +1,5 @@
 /**
- * This file contains the CCXT data engine. This functionality will 
- *
+ * This file contains configuration utilities
  */
 const config = require('config');
 

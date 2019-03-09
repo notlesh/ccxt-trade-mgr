@@ -65,31 +65,8 @@ class DataEngine {
 
 			// now query exchange for data
 			while (true) {
-				for (let exchangeName in self.exchanges) {
-					let exchange = self.exchanges[exchangeName];
-					let watchlist = self.config.watchlist[exchangeName];
-					if (watchlist) {
-						for (let symbol of watchlist) {
-							const ticker = await exchange.fetchTicker(symbol);
-							const now = new Date();
-							console.log(""+ now +" "+ exchangeName +":"+ ticker.symbol
-								+ ": "+ ticker.close);
-
-							// update our cache
-							if (! self.tickerCache[exchangeName]) {
-								self.tickerCache[exchangeName] = {};
-							}
-							self.tickerCache[exchangeName][symbol] = {
-								// TODO: determine what data we want to
-								// actually hang on to
-								timePulled: now,
-								close: ticker.close
-							};
-							// TODO: evaluate managed positions
-						}
-					}
-				}
-
+				await self.fetchAllTickerData();
+				await self.processOpenPositions();
 				await sleep.sleep(10);
 			}
 
@@ -100,17 +77,69 @@ class DataEngine {
 	}
 
 	/**
+	 * Fetch the latest ticker data from each exchange and update
+	 * the cache
+	 */
+	async fetchAllTickerData() {
+		console.log("fetchAllTickerData()");
+		for (let exchangeName in this.exchanges) {
+			let exchange = this.exchanges[exchangeName];
+			let watchlist = this.config.watchlist[exchangeName];
+			if (watchlist) {
+				for (let symbol of watchlist) {
+					const ticker = await exchange.fetchTicker(symbol);
+					const now = new Date();
+					console.log(""+ now +" "+ exchangeName +":"+ ticker.symbol
+						+ ": "+ ticker.close);
+
+					// update our cache
+					if (! this.tickerCache[exchangeName]) {
+						this.tickerCache[exchangeName] = {};
+					}
+					this.tickerCache[exchangeName][symbol] = {
+						// TODO: determine what data we want to
+						// actually hang on to
+						timePulled: now,
+						close: ticker.close
+					};
+				}
+			}
+		}
+	}
+
+	/**
+	 * Process positions
+	 */
+	async processOpenPositions() {
+		console.log("processOpenPositions()");
+		const positions = this.listOpenPositions();
+
+		// TODO
+	}
+
+	/**
 	 * Returns the current ticker cache.
 	 */
 	getLatestTickerData() {
 		return this.tickerCache;
 	}
 
+	/**
+	 * Open a position -- inserts into the database. The position
+	 * will be handled at a later time.
+	 */
 	async openPosition(position) {
-
 		console.log("openPosition()");
 		console.log("position: ", position);
 		return await this.database.insertPosition(position);
+	}
+
+	/**
+	 * List all open positions
+	 */
+	async listOpenPositions() {
+		// TODO: set up proper query to select only open positions
+		return await this.database.listPositions();
 	}
 }
 

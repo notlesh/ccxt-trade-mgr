@@ -33,7 +33,9 @@ class Database {
 					console.log("Connected!");
 
 					self.db = client.db(dbName);
+					self.dbCollections.orders = self.db.collection("orders");
 					self.dbCollections.positions = self.db.collection("positions");
+					self.dbCollections.managedPositions = self.db.collection("managedPositions");
 					resolve();
 
 				});
@@ -46,6 +48,64 @@ class Database {
 			this.dbClient.close();
 			this.connected = false;
 		}
+	}
+
+	// TODO: reduce code duplication here -- can we generate CRUDL functions automatically?
+
+	/**
+	 * Operations on "orders"
+	 */
+	async insertOrder(order) {
+		await Schema.order.validate(order);
+		const result = await this.dbCollections.orders.insertOne(order);
+		return result.insertedId;
+	}
+	async updateOrder(id, order) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			try {
+				self.dbCollections.orders.updateOne({_id : id}, {$set: order} );
+				resolve();
+			} catch(e) {
+				reject(e);
+			}
+		});
+	}
+	async getOrder(id) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.orders.find(ObjectId(id)).toArray((err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
+	}
+	async listOrders(query = {}) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.orders.find(query).toArray((err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
+	}
+	async deleteOrder(id) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.orders.deleteOne({_id : id}, (err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
 	}
 
 	/**
@@ -95,6 +155,62 @@ class Database {
 		const self = this;
 		return new Promise((resolve, reject) => {
 			self.dbCollections.positions.deleteOne({_id : id}, (err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
+	}
+
+	/**
+	 * Operations on "managedPositions"
+	 */
+	async insertManagedPosition(managedPosition) {
+		await Schema.managedPosition.validate(managedPosition);
+		const result = await this.dbCollections.managedPositions.insertOne(managedPosition);
+		return result.insertedId;
+	}
+	async updateManagedPosition(id, managedPosition) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			try {
+				self.dbCollections.managedPositions.updateOne({_id : id}, {$set: managedPosition} );
+				resolve();
+			} catch(e) {
+				reject(e);
+			}
+		});
+	}
+	async getManagedPosition(id) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.managedPositions.find(ObjectId(id)).toArray((err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
+	}
+	async listManagedPositions(query = {}) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.managedPositions.find(query).toArray((err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
+	}
+	async deleteManagedPosition(id) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.managedPositions.deleteOne({_id : id}, (err, docs) => {
 				if (err) {
 					reject(err);
 				} else {

@@ -1,44 +1,105 @@
-/**
- * Schema validation for data objects.
- */
-
 const Joi = require('joi');
 
-const Schema = {
+/**
+ * This contains "schema" objects that can be used to validate objects using the
+ * Joi validator.
+ *
+ * This file also contains documentation on each object and field.
+ */
+const Schema = {};
 
-	position: Joi.object().keys({
+/**
+ * A target describes a desired price point and an amount and is used
+ * to express an intention to buy, sell, stoploss, etc.
+ *
+ * target = {
+ *     amount: <float>                   amount to buy at this entry point, expressed in base currency
+ *     target: <float>                   price point to buy/sell at, expressed in quote currency
+ * };
+ */
+Schema.target = Joi.object().keys({
+	amount: Joi.number().greater(0).required(),
+	target: Joi.number().greater(0).required()
+});
 
-		// The exchange on which this position should be executed
-		exchange: Joi.string().alphanum().required(),
+/**
+ * An order corresponds to an order on an exchange.
+ *
+ * order = {
+ *     exchangeId: <string>              the id assigned by the exchange for this order
+ *     exchange: <string>                name of exchange, must match ccxt's naming convention
+ *     pair: <string>                    trading pair, must match ccxt's unified pair naming
+ *     direction: <string>               "short" or "long"
+ *     leverage: <float>                 a number representing the leverage for this order. 0 for no leverage.
+ *     price: <float>                    price to buy or sell at
+ *     amount: <float>                   amount, in base currency, to buy or sell
+ *     type: <string>                    "limit" or "market" // TODO: support others (stoploss, etc.)
+ *     status: <string>                  the current status of this order
+ * };
+ */
+Schema.order = Joi.object().keys({
+	exchangeId: Joi.string().alphanum(),
+	exchange: Joi.string().alphanum().required(),
+	pair: Joi.string().required(),
+	direction: Joi.string().valid("long", "short").required(),
+	leverage: Joi.number(),
+	price: Joi.number().greater(0).required(),
+	amount: Joi.number().greater(0).required(),
+	type: Joi.string().valid("limit", "market").required(), // TODO: support stop loss, etc.
+	status: Joi.string(), // TODO: enumerate values
+});
 
-		// the trading pair (e.g. BTC/USD) for this position
-		pair: Joi.string().required(),
+/**
+ * A position describes the original desired intention of a position, including where to initially
+ * buy and sell, where to take profit, and where to set stop loss.
+ *
+ * Note that this merely describes the intention and parameters of a position; it does not contain
+ * its state, outcome, etc. Schema.managedPosition serves these purposes.
+ *
+ * position = {
+ *     exchange: <string>                name of exchange, must match ccxt's naming convention
+ *     pair: <string>                    trading pair, must match ccxt's unified pair naming
+ *     direction: <string>               "short" or "long"
+ *     leverage: <float>                 a number representing the leverage for this position. 0 for no leverage.
+ *     entries: [ <Schema.target> ]      desired entry points, amounts expressed in base currency
+ *     stoploss: <float>                 stop loss price point, expressed in quote currency
+ *     targets: [ <Schema.target> ]      the desired points to take profit at, amounts 
+ *                                       expressed as portions in the range [0..1], e.g. 0.5 for half.
+ *                                       the sum of all portions in this array should total 1.0
+ *     rationale: <string>               a free-form string meant as a note about why this trade was entered
+ * };
+ */
+Schema.position = Joi.object().keys({
+	exchange: Joi.string().alphanum().required(),
+	pair: Joi.string().required(),
+	direction: Joi.string().valid("long", "short").required(),
+	leverage: Joi.number(),
+	entries: Joi.array().items(Schema.target).required(),
+	stoploss: Joi.number().greater(0).required(), // TODO: should be higher/lower than entry (depending on direction)
+	targets: Joi.array().items(Schema.target).required(), // TODO: amounts should total 1.0
+	rationale: Joi.string().required(),
 
-		// direction: short or long
-		direction: Joi.string().valid("long", "short").required(),
+});
 
-		// entry point(s) -- array of {entry: <number>, amount: <number>}
-		entries: Joi.array().items( Joi.object().keys({
-				amount: Joi.number().greater(0).required(),
-				target: Joi.number().greater(0).required()
-		})),
-
-
-		// stoploss TODO: should be higher/lower than entry (depending on direction)
-		stoploss: Joi.number().greater(0).required(),
-
-		// target(s) -- desired take-profit levels (array of {target: <number>, portion: <number>}
-		// TODO: additionally, portion should add up to exactly 1.0.
-		targets: Joi.array().items( Joi.object().keys({
-				amount: Joi.number().greater(0).max(1.0).required(),
-				target: Joi.number().greater(0).required()
-		})),
-
-		// rationale (text blob for describing reasons for this trade)
-		rationale: Joi.string().required(),
-
-	}),
-};
+/**
+ * A managedPosition includes the current state of a position, including the original position itself, 
+ * what orders have been placed, and any modifications by the user to the original position.
+ *
+ * managedPosition = {
+ *     originalPosition: <position>       the original position object
+ *     status: <string>                   the status of this position (e.g. where it is in its lifecycle)
+ *     entryOrders: [ <string> ]          array of entry order ids (id being local/internal id, not exchange id)
+ *     targetOrders: [ <string> ]         array of target order ids (id being local/internal id, not exchange id)
+ *     stoplossOrders: [ <string> ]       array of stoploss order ids (id being local/internal id, not exchange id)
+ * };
+ */
+Schema.managedPosition = Joi.object().keys({
+	originalPosition: Schema.position.required(),
+	status: Joi.string().alphanum().required(), // TODO: enumerate values to validate against
+	entryOrders: Joi.array().items(Joi.string()),
+	targetOrders: Joi.array().items(Joi.string()),
+	stoplossOrders: Joi.array().items(Joi.string()),
+});
 
 module.exports = Schema;
 
