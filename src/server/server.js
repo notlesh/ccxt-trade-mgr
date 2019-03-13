@@ -57,6 +57,28 @@ class Server {
 				callback(null, {code: 200, message: ""+ id});
 			},
 
+			// order-related API 
+			listOrders: async function(args, callback) {
+				const orders = await that.dataEngine.listOpenOrders();
+				callback(null, {code: 200, message: orders});
+			},
+			getOrder: async function(args, callback) {
+
+				const id = args[0];
+				if (! id) {
+					callback({code: 400, message: 'id required'});
+					return;
+				}
+
+				const order = await that.dataEngine.getOrder(id);
+				callback(null, {code: 200, message: order});
+			},
+			createOrder: async function(args, callback) {
+				const order = args[0];
+				const id = await that.dataEngine.createOrder(order);
+				callback(null, {code: 200, message: ""+ id});
+			},
+
 
 
 

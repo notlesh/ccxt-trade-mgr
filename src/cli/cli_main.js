@@ -95,6 +95,55 @@ const main = async function() {
 		});
 
 	program
+		.command('listOrders')
+		.description('List all orders')
+		.action(async () => {
+			await sleep.msleep(1);
+			const orders = await client.listOrders();
+			console.log(JSON.stringify(orders, null, 2));
+		});
+
+	program
+		.command('getOrder <id>')
+		.description('List all orders')
+		.action(async (orderId, cmd) => {
+			await sleep.msleep(1);
+			const orders = await client.getOrder(orderId);
+			console.log(JSON.stringify(orders, null, 2));
+		});
+
+	program
+		.command('createOrder')
+		.description('Create a new order')
+		.option('-e, --exchange [exchange]', 'Exchange to trade on')
+		.option('-p, --pair [pair]', 'Trading pair')
+		.option('-d, --direction [dir]', 'Trading direction ("short" or "long")')
+		.option('-l, --leverage [leverage]', 'Leverage to use', 0)
+		.option('-a, --amount [amount]', 'Amount to buy or sell, in base currency')
+		.option('--price [price]', 'Price point this order should execute at')
+		.option('-t, --type [type]', 'Type of order ("limit" or "market"')
+		.action(async () => {
+			const args = program.args[0];
+
+			const order = {
+				exchange: args.exchange,
+				pair: args.pair,
+				direction: args.direction,
+				leverage: args.leverage,
+				amount: args.amount,
+				price: args.price,
+				type: args.type,
+			};
+
+			console.log("order obj: ", order);
+
+			await Schema.order.validate(order);
+
+			const response = await client.createOrder(order);
+			console.log(response.result.message);
+		});
+
+	program
 		.command('listPositions')
 		.description('List all positions')
 		.action(async () => {
@@ -123,8 +172,6 @@ const main = async function() {
 		.option('--targets [targets]', 'Targets as comma separated list of (portion@price)')
 		.option('-m, --message [message]', 'Message for this trade (e.g. rationale)')
 		.action(async () => {
-			// await sleep.msleep(1);
-			// const positions = await client.listPositions();
 			const args = program.args[0];
 
 			const position = {
