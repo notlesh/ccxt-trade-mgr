@@ -26,7 +26,6 @@ Schema.target = Joi.object().keys({
  * An order corresponds to an order on an exchange.
  *
  * order = {
- *     exchangeId: <string>              the id assigned by the exchange for this order
  *     exchange: <string>                name of exchange, must match ccxt's naming convention
  *     pair: <string>                    trading pair, must match ccxt's unified pair naming
  *     direction: <string>               "short" or "long"
@@ -38,7 +37,6 @@ Schema.target = Joi.object().keys({
  * };
  */
 Schema.order = Joi.object().keys({
-	exchangeId: Joi.string().alphanum(),
 	exchange: Joi.string().alphanum().required(),
 	pair: Joi.string().required(),
 	direction: Joi.string().valid("long", "short").required(),
@@ -47,6 +45,26 @@ Schema.order = Joi.object().keys({
 	amount: Joi.number().greater(0).required(),
 	type: Joi.string().valid("limit", "market").required(), // TODO: support stop loss, etc.
 	status: Joi.string(), // TODO: enumerate values
+});
+
+/**
+ * A managedOrder includes the current state of an order, including the original order
+ * and the current state of the order.
+ *
+ * managedOrder = {
+ *     originalOrder: <order>         the original order object
+ *     createdTimestamp: <order>      the time when this order was created
+ *     status: <string>               the status of the order
+ *     externalId: <string>           the id assigned by the exchange for this order
+ *     fillAmount: <float>            the amount of the order, in base currency, that has been filled
+ * };
+ */
+Schema.managedOrder = Joi.object().keys({
+	originalOrder: Schema.order.required(),
+	createdTimestamp: Joi.date(),
+	status: Joi.string().alphanum().required(), // TODO: enumerate values to validate against
+	externalId: Joi.string().alphanum().allow(''),
+	fillAmount: Joi.number(),
 });
 
 /**
@@ -87,6 +105,7 @@ Schema.position = Joi.object().keys({
  *
  * managedPosition = {
  *     originalPosition: <position>       the original position object
+ *     createdTimestamp: <date>           the date when this order was received by the server
  *     status: <string>                   the status of this position (e.g. where it is in its lifecycle)
  *     entryOrders: [ <string> ]          array of entry order ids (id being local/internal id, not exchange id)
  *     targetOrders: [ <string> ]         array of target order ids (id being local/internal id, not exchange id)
@@ -95,6 +114,7 @@ Schema.position = Joi.object().keys({
  */
 Schema.managedPosition = Joi.object().keys({
 	originalPosition: Schema.position.required(),
+	createdTimestamp: Joi.date(),
 	status: Joi.string().alphanum().required(), // TODO: enumerate values to validate against
 	entryOrders: Joi.array().items(Joi.string()),
 	targetOrders: Joi.array().items(Joi.string()),

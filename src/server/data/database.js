@@ -34,6 +34,7 @@ class Database {
 
 					self.db = client.db(dbName);
 					self.dbCollections.orders = self.db.collection("orders");
+					self.dbCollections.managedOrders = self.db.collection("managedOrders");
 					self.dbCollections.positions = self.db.collection("positions");
 					self.dbCollections.managedPositions = self.db.collection("managedPositions");
 					resolve();
@@ -99,6 +100,62 @@ class Database {
 		const self = this;
 		return new Promise((resolve, reject) => {
 			self.dbCollections.orders.deleteOne({_id : id}, (err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
+	}
+
+	/**
+	 * Operations on "managedOrders"
+	 */
+	async insertManagedOrder(managedOrder) {
+		await Schema.managedOrder.validate(managedOrder);
+		const result = await this.dbCollections.managedOrders.insertOne(managedOrder);
+		return result.insertedId;
+	}
+	async updateManagedOrder(id, managedOrder) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			try {
+				self.dbCollections.managedOrders.updateOne({_id : id}, {$set: managedOrder} );
+				resolve();
+			} catch(e) {
+				reject(e);
+			}
+		});
+	}
+	async getManagedOrder(id) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.managedOrders.find(ObjectId(id)).toArray((err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
+	}
+	async listManagedOrders(query = {}) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.managedOrders.find(query).toArray((err, docs) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(docs);
+				}
+			});
+		});
+	}
+	async deleteManagedOrder(id) {
+		const self = this;
+		return new Promise((resolve, reject) => {
+			self.dbCollections.managedOrders.deleteOne({_id : id}, (err, docs) => {
 				if (err) {
 					reject(err);
 				} else {
