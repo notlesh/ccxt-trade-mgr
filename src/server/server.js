@@ -10,6 +10,7 @@ const sleep = require('sleep');
 const Database = require('./data/database');
 const DataEngine = require('./ccxt_data_engine');
 const Config = require('./config');
+const OrderManager = require('./order_manager');
 
 class Server {
 	constructor() {
@@ -28,6 +29,12 @@ class Server {
 			this.config.getExchangeList(), 
 			this.config.getWatchlist());
 		this.dataEngine.start();
+
+		this.orderManager = new OrderManager(
+			this.database,
+			this.dataEngine);
+		this.orderManager.start();
+
 
 		// define JSON RPC functionality
 		this.jsonRpcServer = jayson.server({
@@ -59,7 +66,7 @@ class Server {
 
 			// order-related API 
 			listOrders: async function(args, callback) {
-				const orders = await that.dataEngine.listOpenOrders();
+				const orders = await that.orderManager.listOpenOrders();
 				callback(null, {code: 200, message: orders});
 			},
 			getOrder: async function(args, callback) {
@@ -70,12 +77,12 @@ class Server {
 					return;
 				}
 
-				const order = await that.dataEngine.getOrder(id);
+				const order = await that.orderManager.getOrder(id);
 				callback(null, {code: 200, message: order});
 			},
 			createOrder: async function(args, callback) {
 				const order = args[0];
-				const id = await that.dataEngine.createOrder(order);
+				const id = await that.orderManager.createOrder(order);
 				callback(null, {code: 200, message: ""+ id});
 			},
 

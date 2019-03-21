@@ -6,7 +6,6 @@
 const ccxt = require('ccxt');
 const assert = require('assert');
 const sleep = require('sleep');
-const OrderManager = require('./order_manager');
 
 class DataEngine {
 	constructor(database, exchangeConfig, watchlist) {
@@ -18,8 +17,6 @@ class DataEngine {
 
 		this.exchanges = {};
 		this.tickerCache = {};
-
-		this.orderManager = new OrderManager(this.database, this);
 	}
 
 	/**
@@ -65,9 +62,6 @@ class DataEngine {
 					});
 				}
 			}
-
-			// start subservient managers now that we are initialized
-			self.orderManager.start();
 
 			// now query exchange for data
 			while (true) {
@@ -128,20 +122,6 @@ class DataEngine {
 	 */
 	getLatestTickerData() {
 		return this.tickerCache;
-	}
-
-	/**
-	 * Order-related operations
-	 */
-	async createOrder(order) {
-		return await this.database.insertOrder(order);
-	}
-	async listOpenOrders() {
-		// TODO: set up proper query to select only open positions
-		return await this.database.listOrders();
-	}
-	async getOrder(id) {
-		return await this.database.getOrder(id);
 	}
 
 	/**

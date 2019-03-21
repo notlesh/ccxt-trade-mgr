@@ -101,6 +101,20 @@ class OrderManager {
 
 		}, this.orderPollingIntervalMS);
 	}
+
+	/**
+	 * Order-related operations
+	 */
+	async createOrder(order) {
+		return await this.database.insertOrder(order);
+	}
+	async listOpenOrders() {
+		// TODO: set up proper query to select only open positions
+		return await this.database.listOrders();
+	}
+	async getOrder(id) {
+		return await this.database.getOrder(id);
+	}
 }
 
 module.exports = OrderManager;
