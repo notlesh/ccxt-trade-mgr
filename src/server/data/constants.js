@@ -11,6 +11,13 @@ Constants = Object.freeze({
 		ORDER_REQUESTED: "ORDER_REQUESTED",
 	}),
 
+	/**
+	 * The primary "lifecycle" status of a position
+	 */
+	PositionStatusEnum: Object.freeze({
+		UNINITIALIZED: "UNINITIALIZED",
+	}),
+
 });
 
 module.exports = Constants;

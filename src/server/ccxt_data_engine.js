@@ -66,7 +66,6 @@ class DataEngine {
 			// now query exchange for data
 			while (true) {
 				await self.fetchAllTickerData();
-				await self.processOpenPositions();
 				await sleep.sleep(10);
 			}
 
@@ -108,34 +107,10 @@ class DataEngine {
 	}
 
 	/**
-	 * Process positions
-	 */
-	async processOpenPositions() {
-		console.log("processOpenPositions()");
-		const positions = this.listOpenPositions();
-
-		// TODO
-	}
-
-	/**
 	 * Returns the current ticker cache.
 	 */
 	getLatestTickerData() {
 		return this.tickerCache;
-	}
-
-	/**
-	 * Position-related operations
-	 */
-	async openPosition(position) {
-		return await this.database.insertPosition(position);
-	}
-	async listOpenPositions() {
-		// TODO: set up proper query to select only open positions
-		return await this.database.listPositions();
-	}
-	async getPosition(id) {
-		return await this.database.getPosition(id);
 	}
 }
 

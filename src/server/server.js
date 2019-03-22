@@ -11,6 +11,7 @@ const Database = require('./data/database');
 const DataEngine = require('./ccxt_data_engine');
 const Config = require('./config');
 const OrderManager = require('./order_manager');
+const PositionManager = require('./position_manager');
 
 class Server {
 	constructor() {
@@ -35,6 +36,11 @@ class Server {
 			this.dataEngine);
 		this.orderManager.start();
 
+		this.positionManager = new PositionManager(
+			this.database,
+			this.dataEngine);
+		this.positionManager.start();
+
 
 		// define JSON RPC functionality
 		this.jsonRpcServer = jayson.server({
@@ -44,7 +50,7 @@ class Server {
 
 			// position-related API 
 			listPositions: async function(args, callback) {
-				const positions = await that.dataEngine.listOpenPositions();
+				const positions = await that.positionManager.listOpenManagedPositions();
 				callback(null, {code: 200, message: positions});
 			},
 			getPosition: async function(args, callback) {
@@ -55,18 +61,18 @@ class Server {
 					return;
 				}
 
-				const position = await that.dataEngine.getPosition(id);
+				const position = await that.positionManager.getManagedPosition(id);
 				callback(null, {code: 200, message: position});
 			},
 			openPosition: async function(args, callback) {
 				const position = args[0];
-				const id = await that.dataEngine.openPosition(position);
+				const id = await that.positionManager.openManagedPosition(position);
 				callback(null, {code: 200, message: ""+ id});
 			},
 
 			// order-related API 
 			listOrders: async function(args, callback) {
-				const orders = await that.orderManager.listOpenOrders();
+				const orders = await that.orderManager.listOpenManagedOrders();
 				callback(null, {code: 200, message: orders});
 			},
 			getOrder: async function(args, callback) {
@@ -77,7 +83,7 @@ class Server {
 					return;
 				}
 
-				const order = await that.orderManager.getOrder(id);
+				const order = await that.orderManager.getManagedOrder(id);
 				callback(null, {code: 200, message: order});
 			},
 			createOrder: async function(args, callback) {

@@ -34,7 +34,6 @@ class Database {
 
 					self.db = client.db(dbName);
 					self.dbCollections.managedOrders = self.db.collection("managedOrders");
-					self.dbCollections.positions = self.db.collection("positions");
 					self.dbCollections.managedPositions = self.db.collection("managedPositions");
 					resolve();
 
@@ -99,62 +98,6 @@ class Database {
 		const self = this;
 		return new Promise((resolve, reject) => {
 			self.dbCollections.managedOrders.deleteOne({_id : id}, (err, docs) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(docs);
-				}
-			});
-		});
-	}
-
-	/**
-	 * Operations on "positions"
-	 */
-	async insertPosition(position) {
-		await Schema.position.validate(position);
-		const result = await this.dbCollections.positions.insertOne(position);
-		return result.insertedId;
-	}
-	async updatePosition(id, position) {
-		const self = this;
-		return new Promise((resolve, reject) => {
-			try {
-				self.dbCollections.positions.updateOne({_id : id}, {$set: position} );
-				resolve();
-			} catch(e) {
-				reject(e);
-			}
-		});
-	}
-	async getPosition(id) {
-		const self = this;
-		return new Promise((resolve, reject) => {
-			self.dbCollections.positions.find(ObjectId(id)).toArray((err, docs) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(docs);
-				}
-			});
-		});
-	}
-	async listPositions(query = {}) {
-		const self = this;
-		return new Promise((resolve, reject) => {
-			self.dbCollections.positions.find(query).toArray((err, docs) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(docs);
-				}
-			});
-		});
-	}
-	async deletePosition(id) {
-		const self = this;
-		return new Promise((resolve, reject) => {
-			self.dbCollections.positions.deleteOne({_id : id}, (err, docs) => {
 				if (err) {
 					reject(err);
 				} else {

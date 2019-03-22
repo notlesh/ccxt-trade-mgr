@@ -70,13 +70,13 @@ Schema.managedOrder = Joi.object().keys({
 });
 
 /**
- * A position describes the original desired intention of a position, including where to initially
+ * A positionSpec describes the original desired intention of a position, including where to initially
  * buy and sell, where to take profit, and where to set stop loss.
  *
  * Note that this merely describes the intention and parameters of a position; it does not contain
  * its state, outcome, etc. Schema.managedPosition serves these purposes.
  *
- * position = {
+ * positionSpec = {
  *     exchange: <string>                name of exchange, must match ccxt's naming convention
  *     pair: <string>                    trading pair, must match ccxt's unified pair naming
  *     direction: <string>               "short" or "long"
@@ -89,7 +89,7 @@ Schema.managedOrder = Joi.object().keys({
  *     rationale: <string>               a free-form string meant as a note about why this trade was entered
  * };
  */
-Schema.position = Joi.object().keys({
+Schema.positionSpec = Joi.object().keys({
 	exchange: Joi.string().alphanum().required(),
 	pair: Joi.string().required(),
 	direction: Joi.string().valid("long", "short").required(),
@@ -106,7 +106,7 @@ Schema.position = Joi.object().keys({
  * what orders have been placed, and any modifications by the user to the original position.
  *
  * managedPosition = {
- *     originalPosition: <position>       the original position object
+ *     originalPosition: <positionSpec>       the original position object
  *     createdTimestamp: <date>           the date when this order was received by the server
  *     status: <string>                   the status of this position (e.g. where it is in its lifecycle)
  *     entryOrders: [ <string> ]          array of entry order ids (id being local/internal id, not exchange id)
@@ -115,7 +115,7 @@ Schema.position = Joi.object().keys({
  * };
  */
 Schema.managedPosition = Joi.object().keys({
-	originalPosition: Schema.position.required(),
+	originalPosition: Schema.positionSpec.required(),
 	createdTimestamp: Joi.date(),
 	status: Joi.string().alphanum().required(), // TODO: enumerate values to validate against
 	entryOrders: Joi.array().items(Joi.string()),

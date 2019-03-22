@@ -186,7 +186,7 @@ const main = async function() {
 
 			// console.log("position obj: ", position);
 
-			await Schema.position.validate(position);
+			await Schema.positionSpec.validate(position);
 
 			const response = await client.openPosition(position);
 			console.log(response.result.message);
