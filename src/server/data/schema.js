@@ -23,9 +23,9 @@ Schema.target = Joi.object().keys({
 });
 
 /**
- * An order corresponds to an order on an exchange.
+ * An orderSpec is a specification of an order to be executed on an exchange.
  *
- * order = {
+ * orderSpec = {
  *     exchange: <string>                name of exchange, must match ccxt's naming convention
  *     pair: <string>                    trading pair, must match ccxt's unified pair naming
  *     direction: <string>               "short" or "long"
@@ -36,7 +36,7 @@ Schema.target = Joi.object().keys({
  *     status: <string>                  the current status of this order
  * };
  */
-Schema.order = Joi.object().keys({
+Schema.orderSpec = Joi.object().keys({
 	exchange: Joi.string().alphanum().required(),
 	pair: Joi.string().required(),
 	direction: Joi.string().valid("long", "short").required(),
@@ -48,23 +48,25 @@ Schema.order = Joi.object().keys({
 });
 
 /**
- * A managedOrder includes the current state of an order, including the original order
- * and the current state of the order.
+ * A managedOrder is an order that is being managed by the CTM system. This includes the original order
+ * specification as well as the current order state.
  *
  * managedOrder = {
- *     originalOrder: <order>         the original order object
- *     createdTimestamp: <order>      the time when this order was created
+ *     originalOrder: <orderSpec>     the original orderSpec object
+ *     createdTimestamp: <date>       the time when this order was created
  *     status: <string>               the status of the order
+ *     closed: <bool>                 true if the exchange is done with the order
  *     externalId: <string>           the id assigned by the exchange for this order
- *     fillAmount: <float>            the amount of the order, in base currency, that has been filled
+ *     filledAmount: <float>          the amount of the order, in base currency, that has been filled
  * };
  */
 Schema.managedOrder = Joi.object().keys({
-	originalOrder: Schema.order.required(),
-	createdTimestamp: Joi.date(),
+	originalOrder: Schema.orderSpec.required(),
+	createdTimestamp: Joi.date().required(),
 	status: Joi.string().alphanum().required(), // TODO: enumerate values to validate against
-	externalId: Joi.string().alphanum().allow(''),
-	fillAmount: Joi.number(),
+	closed: Joi.boolean().required(),
+	externalId: Joi.string().alphanum().required().allow(''),
+	filledAmount: Joi.number().required(),
 });
 
 /**

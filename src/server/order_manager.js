@@ -7,6 +7,8 @@ const ccxt = require('ccxt');
 const assert = require('assert');
 const sleep = require('sleep');
 
+const Constants = require('./data/constants');
+
 class OrderManager {
 
 	constructor(database, ccxtManager) {
@@ -35,58 +37,43 @@ class OrderManager {
 		this.timerId = setInterval(async function() {
 			console.log("Order manager polling...");
 
-			const orders = await that.database.listOrders();
+			const newOrders = await that.database.listManagedOrders(
+					{status: {$eq: Constants.OrderStatusEnum.UNINITIALIZED}});
 
 			// handle any new orders
-			for (const order of orders) {
+			for (const order of newOrders) {
 				try {
-					console.log("Processing order: ", order);
-
-					const orderId = order._id;
-					delete order._id; // remove mongo's id
+					console.log("Processing new order: ", order);
 
 					// get exchange object / validate that exchange was in config
-					const exchange = that.ccxtManager.exchanges[order.exchange];
+					const exchange = that.ccxtManager.exchanges[order.originalOrder.exchange];
 					if (! exchange) {
-						// TODO: this validation should occur before order ever makes it into database
-						// TODO: remove, or this will happen every loop (or refactor)
-						throw new Error("Exchange "+ order.exchange +" not configured");
+						// we check that exchange exists in createManagedOrder(), so if we get here it's
+						// probably because exchange was removed from config
+						// TODO: remove? flag as bad?
+						throw new Error("Uninitialized managedOrder has exchange ("+ order.exchange
+								+ ") which isn't in config");
 					}
 
-					// TODO: should refactor so that managedOrder (and managedPosition) are created immediately, no need for
-					// separate databases and this extra step of conversion from foo to managedFoo
-					let managedOrder = {
-						originalOrder: order, // TODO: prune any database info (e.g. id)?
-						createdTimestamp: new Date(), // TODO: should really be timestamped when server first receives...
-						status: "UNINITIALIZED", // TODO: define, use an enum (e.g. Object.freeze({ /* enum values */ }))
-						externalId: "",
-						fillAmount: 0.0,
-					};
-
-					const managedOrderId = await that.database.insertManagedOrder(managedOrder);
-					console.log("managedOrder created: ", managedOrderId);
-					await that.database.deleteOrder(orderId);
-
 					let externalOrder = null;
-					switch (order.type) {
+					switch (order.originalOrder.type) {
 						case "limit":
 							externalOrder = await exchange.createLimitBuyOrder(
-								order.pair,
-								order.amount,
-								order.price);
+								order.originalOrder.pair,
+								order.originalOrder.amount,
+								order.originalOrder.price);
 							break;
 						case "market":
 							externalOrder = await exchange.createMarketBuyOrder(
-								order.pair,
-								order.amount);
+								order.originalOrder.pair,
+								order.originalOrder.amount);
 							break;
 					}
 
 					console.log("*** Order sent to exchange, id: ", externalOrder.id);
-					managedOrder.externalId = externalOrder.id;
 
 					await that.database.updateManagedOrder(
-						managedOrderId, 
+						order._id,
 						{
 							externalId: externalOrder.id,
 							status: "SUBMITTED",
@@ -94,7 +81,8 @@ class OrderManager {
 
 				} catch(e) {
 					console.error("Caught exception while trying to process order "+ order._id +": ", e);
-					// TODO: attempt to revert any inconsistent state here -- e.g. multi-document transactions in mongo
+					// TODO: attempt to revert any inconsistent state here
+					//       e.g. multi-document transactions in mongo
 				}
 
 			}
@@ -105,15 +93,29 @@ class OrderManager {
 	/**
 	 * Order-related operations
 	 */
-	async createOrder(order) {
-		return await this.database.insertOrder(order);
+	async createManagedOrder(order) {
+
+		if (! this.ccxtManager.exchanges[order.exchange]) {
+			throw new Error("Current config does not support exchange "+ order.exchange);
+		}
+
+		const managedOrder = {
+			originalOrder: order,
+			createdTimestamp: new Date(),
+			status: Constants.OrderStatusEnum.UNINITIALIZED,
+			closed: false,
+			externalId: "",
+			filledAmount: 0.0,
+		};
+
+		return await this.database.insertManagedOrder(managedOrder);
 	}
-	async listOpenOrders() {
+	async listOpenManagedOrders() {
 		// TODO: set up proper query to select only open positions
-		return await this.database.listOrders();
+		return await this.database.listManagedOrders({closed: {$eq: false}});
 	}
-	async getOrder(id) {
-		return await this.database.getOrder(id);
+	async getManagedOrder(id) {
+		return await this.database.getManagedOrder(id);
 	}
 }
 

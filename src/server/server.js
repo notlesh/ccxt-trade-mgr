@@ -82,7 +82,7 @@ class Server {
 			},
 			createOrder: async function(args, callback) {
 				const order = args[0];
-				const id = await that.orderManager.createOrder(order);
+				const id = await that.orderManager.createManagedOrder(order);
 				callback(null, {code: 200, message: ""+ id});
 			},
 

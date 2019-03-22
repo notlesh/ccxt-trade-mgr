@@ -137,7 +137,7 @@ const main = async function() {
 
 			console.log("order obj: ", order);
 
-			await Schema.order.validate(order);
+			await Schema.orderSpec.validate(order);
 
 			const response = await client.createOrder(order);
 			console.log(response.result.message);
