@@ -7,6 +7,7 @@ const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectID;
 const assert = require('assert');
 
+const Log = require('../logging');
 const Schema = require('./schema');
 
 const mongoUrl = 'mongodb://localhost:27017';
@@ -26,11 +27,11 @@ class Database {
 
 			// dbClient.connect() isn't thenable, so we need to wrap in a promise
 			return new Promise(function(resolve, reject) {
-				console.log("Connecting...");
+				Log.db.verbose("Connecting to mongo...");
 				const client = new MongoClient(mongoUrl);
 				client.connect(function(err) {
 					assert.equal(null, err);
-					console.log("Connected!");
+					Log.db.verbose("Connected!");
 
 					self.db = client.db(dbName);
 					self.dbCollections.managedOrders = self.db.collection("managedOrders");
@@ -55,11 +56,13 @@ class Database {
 	 * Operations on "managedOrders"
 	 */
 	async insertManagedOrder(managedOrder) {
+		Log.db.debug({ subject: "inserting managedOrder", data: managedOrder });
 		await Schema.managedOrder.validate(managedOrder);
 		const result = await this.dbCollections.managedOrders.insertOne(managedOrder);
 		return result.insertedId;
 	}
 	async updateManagedOrder(id, managedOrder) {
+		Log.db.debug({ subject: "updating managedOrder", id: id, data: managedOrder });
 		const self = this;
 		return new Promise((resolve, reject) => {
 			try {

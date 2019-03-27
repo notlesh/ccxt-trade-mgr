@@ -7,6 +7,7 @@ const assert = require('assert');
 const jayson = require('jayson');
 const sleep = require('sleep');
 
+const Log = require('./logging');
 const Database = require('./data/database');
 const DataEngine = require('./ccxt_data_engine');
 const Config = require('./config');
@@ -97,10 +98,10 @@ class Server {
 
 		});
 		this.jsonRpcServer.on("request", (request) => {
-			console.log("received request: ", request);
+			Log.api.verbose({ subject: "received request", data: request });
 		});
 		this.jsonRpcServer.on("response", (request, response) => {
-			console.log("sent response: ", response);
+			Log.api.verbose({ subject: "sent response", data: response });
 		});
 	}
 

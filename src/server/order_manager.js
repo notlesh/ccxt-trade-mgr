@@ -29,13 +29,13 @@ class OrderManager {
 
 		const that = this;
 
-		console.log("OrderManager.start()...");
+		Log.orders.info("OrderManager.start()...");
 
 		this.running = true;
 
 
 		this.timerId = setInterval(async function() {
-			console.log("Order manager polling...");
+			Log.orders.debug("Order manager polling...");
 
 			const newOrders = await that.database.listManagedOrders(
 					{status: {$eq: Constants.OrderStatusEnum.UNINITIALIZED}});
@@ -43,7 +43,7 @@ class OrderManager {
 			// handle any new orders
 			for (const order of newOrders) {
 				try {
-					console.log("Processing new order: ", order);
+					Log.orders.info("Processing new order: ", order);
 
 					// get exchange object / validate that exchange was in config
 					const exchange = that.ccxtManager.exchanges[order.originalOrder.exchange];
@@ -70,7 +70,7 @@ class OrderManager {
 							break;
 					}
 
-					console.log("*** Order sent to exchange, id: ", externalOrder.id);
+					Log.orders.info("*** Order sent to exchange, id: ", externalOrder.id);
 
 					await that.database.updateManagedOrder(
 						order._id,
@@ -80,7 +80,7 @@ class OrderManager {
 						});
 
 				} catch(e) {
-					console.error("Caught exception while trying to process order "+ order._id +": ", e);
+					Log.orders.error("Caught exception while trying to process order "+ order._id +": ", e);
 					// TODO: attempt to revert any inconsistent state here
 					//       e.g. multi-document transactions in mongo
 				}

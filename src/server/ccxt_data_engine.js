@@ -26,20 +26,20 @@ class DataEngine {
 	start() {
 		assert.ok(!this.running, "Can't call DataEngine.start() when already running");
 
-		console.log("DataEngine.start()...");
+		Log.console.info("DataEngine.start()...");
 
 		this.running = true;
 
 		const self = this;
 		let id = setTimeout(async function() {
-			console.log("Setting up ccxt exchanges");
+			Log.console.info("DataEngine: Setting up ccxt exchanges");
 			for (let exchangeConf of self.config.exchanges) {
 
 				// initialize each exchange we will need to work with
 				// we expect the string from the config to match a class in ccxt,
 				// for example "binance" would match ccxt.binance
 				const classObject = ccxt[exchangeConf.name]
-				console.log("Initializing exchange "+ exchangeConf.name);
+				Log.console.info("DataEngine: Initializing exchange "+ exchangeConf.name);
 				if (classObject === 'undefined') {
 					throw new Error("Exchange "+ exchangeConf.name +" not recognized / supported");
 				}
@@ -58,7 +58,7 @@ class DataEngine {
 				// if config specifies apiKey/secret key, print out account balance
 				if (exchangeConf.hasOwnProperty("secret")) {
 					exchange.fetchBalance().then((balance) => {
-						console.log("Account balance for "+ exchangeConf.name +": ", balance);
+						Log.console.info("Account balance for "+ exchangeConf.name +": ", balance);
 					});
 				}
 			}
@@ -70,7 +70,7 @@ class DataEngine {
 			}
 
 			// XXX: should only exit when told to do so
-			console.log("Done running");
+			Log.console.info("DataEngine: Done running");
 			self.running = false;
 		}, 1000);
 	}
@@ -80,7 +80,7 @@ class DataEngine {
 	 * the cache
 	 */
 	async fetchAllTickerData() {
-		console.log("fetchAllTickerData()");
+		Log.console.info("DataEngine.fetchAllTickerData()");
 		for (let exchangeName in this.exchanges) {
 			let exchange = this.exchanges[exchangeName];
 			let watchlist = this.config.watchlist[exchangeName];
@@ -88,7 +88,7 @@ class DataEngine {
 				for (let symbol of watchlist) {
 					const ticker = await exchange.fetchTicker(symbol);
 					const now = new Date();
-					console.log(""+ now +" "+ exchangeName +":"+ ticker.symbol
+					Log.console.info(""+ now +" "+ exchangeName +":"+ ticker.symbol
 						+ ": "+ ticker.close);
 
 					// update our cache

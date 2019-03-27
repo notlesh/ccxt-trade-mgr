@@ -18,6 +18,8 @@ Constants = Object.freeze({
 		UNINITIALIZED: "UNINITIALIZED",
 	}),
 
+	LOGGING_DIR: './log/',
+
 });
 
 module.exports = Constants;

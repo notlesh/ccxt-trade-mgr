@@ -39,15 +39,6 @@ class Config {
 		} // TODO: provide sensible defaults?
 
 		this.initialized = true;
-
-		/*
-		 * Only uncomment temporarily as needed -- config can have sensitive information
-		 *
-		console.log("Config: ");
-		console.log("  server: ", this.server);
-		// console.log("  exchanges", this.exchanges); // don't print - this contains api keys
-		console.log("  watchlist", this.watchlist);
-		*/
 	}
 
 	getWatchlist() {

@@ -30,13 +30,13 @@ class PositionManager {
 
 		const that = this;
 
-		console.log("PositionManager.start()...");
+		Log.positions.info("PositionManager.start()...");
 
 		this.running = true;
 
 
 		this.timerId = setInterval(async function() {
-			console.log("PositionManager polling...");
+			Log.positions.debug("PositionManager polling...");
 
 			// TODO: ...
 
