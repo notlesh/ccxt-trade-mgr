@@ -8,6 +8,8 @@ const ccxt = require('ccxt');
 const assert = require('assert');
 const sleep = require('sleep');
 
+const Log = require('./logging');
+
 const Constants = require('./data/constants');
 
 class PositionManager {
