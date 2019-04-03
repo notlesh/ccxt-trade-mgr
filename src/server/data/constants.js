@@ -9,6 +9,8 @@ Constants = Object.freeze({
 	OrderStatusEnum: Object.freeze({
 		UNINITIALIZED: "UNINITIALIZED",
 		ORDER_REQUESTED: "ORDER_REQUESTED",
+		ORDER_PARTIALLY_FILLED: "ORDER_PARTIALLY_FILLED",
+		ORDER_FILLED: "ORDER_FILLED",
 	}),
 
 	/**
