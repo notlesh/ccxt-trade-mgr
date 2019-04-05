@@ -3,9 +3,7 @@
  * evaluate orders that are not closed to update their status and 
  * make any necessary API calls to the exchange.
  */
-const ccxt = require('ccxt');
 const assert = require('assert');
-const sleep = require('sleep');
 
 const Log = require('./logging');
 
@@ -102,7 +100,12 @@ class OrderManager {
 				});
 
 		} catch(e) {
-			Log.orders.error("Caught exception while trying to open new order "+ order._id +": ", e);
+			Log.orders.error(
+				{ 
+					message: "Caught exception while trying to open new order "+ order._id,
+					orderId: order._id,
+					error: e,
+				});
 			// TODO: be very careful here that we don't create multiple orders on the exchange.
 			//       at the time of this writing, we could do this if we successfully create an order
 			//       but fail to update the database
@@ -163,7 +166,12 @@ class OrderManager {
 			}
 
 		} catch(e) {
-			Log.orders.error("Caught exception while trying to update order status "+ order._id +": ", e);
+			Log.orders.error(
+				{ 
+					message: "Caught exception while trying to update order status for order "+ order._id,
+					orderId: order._id,
+					error: e,
+				});
 			// TODO: this also needs to be handled very carefully. some of the problems we might
 			//       encounter here:
 			//       1) not creating follow-up orders (e.g. stop loss)
@@ -211,7 +219,7 @@ class OrderManager {
 		// get exchange object / validate that exchange was in config
 		const exchange = this.ccxtManager.exchanges[exchangeName];
 		if (! exchange) {
-			throw new Error("OrderManager unable to get exchange ("+ order.exchange
+			throw new Error("OrderManager unable to get exchange ("+ exchangeName
 					+ ") -- probably not in config");
 		}
 		return exchange;

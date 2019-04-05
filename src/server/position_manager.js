@@ -96,8 +96,12 @@ class PositionManager {
 				});
 
 		} catch(e) {
-			Log.positions.error("Caught exception while trying to handle new position "+
-					position._id +": ", e);
+			Log.positions.error(
+				{ 
+					message: "Caught exception while trying to handle new position "+ position._id,
+					positionId: position._id,
+					exception: e,
+				});
 			// TODO: here we may have created some but not all positions.
 			//       how should we clean up? should we retry?
 		}

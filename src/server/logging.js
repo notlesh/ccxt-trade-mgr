@@ -7,24 +7,51 @@
  * (as opposed to having to refactor log statements).
  */
 const winston = require('winston');
+const colors = require('colors');
 
 const Constants = require('./data/constants');
 
-let combinedTransport = new winston.transports.File({
-		format: winston.format.combine(
-			winston.format.timestamp(),
-			winston.format.errors({ stack: true }),
-			winston.format.json()
-		),
-		filename: Constants.LOGGING_DIR + 'all.log'
-	});
-let console = new winston.transports.Console({
-		level: 'warn',
-		format: winston.format.combine(
-			winston.format.errors({ stack: true }),
-			winston.format.colorize({ all: true }),
-		)
-	});
+const consoleFormatter = winston.format.printf(info => {
+	let date = new Date().toISOString();
+	let message = `${date} ${info.level}: ${info.message}`;
+
+	// TODO: some way to display any extra info would be nice,
+	//       but winston combines all sorts of things into the info object, including:
+	//       1) stuff we know we want to print
+	//       2) stuff we know we don't want to print
+	//       3) any number of other things which we may or may not want to print
+
+	if (info.error instanceof Error) {
+		// message += "\n" + info.error.stack;
+		message += "\n" + colors.red(info.error.stack);
+	}
+
+	return message;
+
+});
+
+const logFileFormat = winston.format.combine(
+		winston.format.timestamp(),
+		winston.format.errors({ stack: true }),
+		winston.format.json());
+const consoleFormat = winston.format.combine(
+		winston.format.colorize({all: true}),
+		consoleFormatter);
+
+
+const combinedTransport = new winston.transports.File({
+	format: logFileFormat,
+	filename: Constants.LOGGING_DIR + 'all.log'
+});
+const console = new winston.transports.Console({
+	level: 'warn',
+	format: consoleFormat,
+});
+const consoleFile = new winston.transports.File({
+	level: 'silly',
+	format: consoleFormat,
+	filename: Constants.LOGGING_DIR + 'console.log'
+});
 
 const Log = {
 
@@ -33,9 +60,11 @@ const Log = {
 		level: 'silly',
 		transports: [
 			combinedTransport,
+			consoleFile,
 			console,
-			new winston.transports.File(
-					{filename: Constants.LOGGING_DIR + '/database.log'}),
+			new winston.transports.File({
+				format: logFileFormat,
+				filename: Constants.LOGGING_DIR + '/database.log'}),
 		],
 	}),
 
@@ -44,9 +73,11 @@ const Log = {
 		level: 'silly',
 		transports: [
 			combinedTransport,
+			consoleFile,
 			console,
-			new winston.transports.File(
-					{filename: Constants.LOGGING_DIR + '/api.log'}),
+			new winston.transports.File({
+				format: logFileFormat,
+				filename: Constants.LOGGING_DIR + '/api.log'}),
 		],
 	}),
 
@@ -55,30 +86,33 @@ const Log = {
 		level: 'silly',
 		transports: [
 			combinedTransport,
+			consoleFile,
 			console,
-			new winston.transports.File(
-					{filename: Constants.LOGGING_DIR + '/orders.log'}),
+			new winston.transports.File({
+				format: logFileFormat,
+				filename: Constants.LOGGING_DIR + '/orders.log'}),
 		],
 	}),
 
 	// position-related logging
 	positions: winston.createLogger({
-		combinedTransport,
 		level: 'silly',
 		transports: [
 			combinedTransport,
+			consoleFile,
 			console,
-			new winston.transports.File(
-					{filename: Constants.LOGGING_DIR + '/positions.log'}),
+			new winston.transports.File({
+				format: logFileFormat,
+				filename: Constants.LOGGING_DIR + '/positions.log'}),
 		],
 	}),
 
 	// log to console and combined
 	console: winston.createLogger({
-		combinedTransport,
 		level: 'silly',
 		transports: [
 			combinedTransport,
+			consoleFile,
 			console,
 		],
 	}),

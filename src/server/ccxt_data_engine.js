@@ -33,7 +33,7 @@ class DataEngine {
 		this.running = true;
 
 		const self = this;
-		let id = setTimeout(async function() {
+		setTimeout(async function() {
 			Log.console.info("DataEngine: Setting up ccxt exchanges");
 			for (let exchangeConf of self.config.exchanges) {
 
@@ -59,14 +59,17 @@ class DataEngine {
 
 				// if config specifies apiKey/secret key, print out account balance
 				if (exchangeConf.hasOwnProperty("secret")) {
-					exchange.fetchBalance().then((balance) => {
-						Log.console.info("Account balance for "+ exchangeConf.name +": ", balance);
-					});
+					const balance = await exchange.fetchBalance();
+					Log.console.info(
+						{
+							message: "Account balance for "+ exchangeConf.name,
+							balance: balance,
+						});
 				}
 			}
 
 			// now query exchange for data
-			while (true) {
+			while (self.running) {
 				await self.fetchAllTickerData();
 				await sleep.sleep(10);
 			}
@@ -88,21 +91,29 @@ class DataEngine {
 			let watchlist = this.config.watchlist[exchangeName];
 			if (watchlist) {
 				for (let symbol of watchlist) {
-					const ticker = await exchange.fetchTicker(symbol);
-					const now = new Date();
-					Log.console.info(""+ now +" "+ exchangeName +":"+ ticker.symbol
-						+ ": "+ ticker.close);
+					try {
+						const ticker = await exchange.fetchTicker(symbol);
+						const now = new Date();
+						Log.console.info(""+ now +" "+ exchangeName +":"+ ticker.symbol
+							+ ": "+ ticker.close);
 
-					// update our cache
-					if (! this.tickerCache[exchangeName]) {
-						this.tickerCache[exchangeName] = {};
+						// update our cache
+						if (! this.tickerCache[exchangeName]) {
+							this.tickerCache[exchangeName] = {};
+						}
+						this.tickerCache[exchangeName][symbol] = {
+							// TODO: determine what data we want to
+							// actually hang on to
+							timePulled: now,
+							close: ticker.close
+						};
+					} catch(e) {
+						Log.console.error(
+							{
+								message: "Error trying to fetch ticker data",
+								error: e
+							});
 					}
-					this.tickerCache[exchangeName][symbol] = {
-						// TODO: determine what data we want to
-						// actually hang on to
-						timePulled: now,
-						close: ticker.close
-					};
 				}
 			}
 		}
