@@ -33,7 +33,6 @@ Schema.target = Joi.object().keys({
  *     price: <float>                    price to buy or sell at
  *     amount: <float>                   amount, in base currency, to buy or sell
  *     type: <string>                    "limit" or "market" // TODO: support others (stoploss, etc.)
- *     status: <string>                  the current status of this order
  * };
  */
 Schema.orderSpec = Joi.object().keys({
@@ -44,7 +43,6 @@ Schema.orderSpec = Joi.object().keys({
 	price: Joi.number().greater(0).required(),
 	amount: Joi.number().greater(0).required(),
 	type: Joi.string().valid("limit", "market").required(), // TODO: support stop loss, etc.
-	status: Joi.string(), // TODO: enumerate values
 });
 
 /**
@@ -106,9 +104,10 @@ Schema.positionSpec = Joi.object().keys({
  * what orders have been placed, and any modifications by the user to the original position.
  *
  * managedPosition = {
- *     originalPosition: <positionSpec>       the original position object
+ *     originalPosition: <positionSpec>   the original position object
  *     createdTimestamp: <date>           the date when this order was received by the server
  *     status: <string>                   the status of this position (e.g. where it is in its lifecycle)
+ *     closed: <bool>                     true if this position and any orders it resulted in are closed
  *     entryOrders: [ <string> ]          array of entry order ids (id being local/internal id, not exchange id)
  *     targetOrders: [ <string> ]         array of target order ids (id being local/internal id, not exchange id)
  *     stoplossOrders: [ <string> ]       array of stoploss order ids (id being local/internal id, not exchange id)
@@ -118,6 +117,7 @@ Schema.managedPosition = Joi.object().keys({
 	originalPosition: Schema.positionSpec.required(),
 	createdTimestamp: Joi.date(),
 	status: Joi.string().alphanum().required(), // TODO: enumerate values to validate against
+	closed: Joi.boolean().required(),
 	entryOrders: Joi.array().items(Joi.string()),
 	targetOrders: Joi.array().items(Joi.string()),
 	stoplossOrders: Joi.array().items(Joi.string()),

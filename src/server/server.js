@@ -39,7 +39,8 @@ class Server {
 
 		this.positionManager = new PositionManager(
 			this.database,
-			this.dataEngine);
+			this.dataEngine,
+			this.orderManager);
 		this.positionManager.start();
 
 
