@@ -60,26 +60,38 @@ class PositionManager {
 	async handleNewPosition(position) {
 		try {
 
-			// TODO: create orders for all entry points
-			const entry = position.originalPosition.entries[0];
+			let entryOrders = [];
 
-			const orderSpec = {
-				exchange: position.originalPosition.exchange,
-				pair: position.originalPosition.pair,
-				direction: position.originalPosition.direction,
-				leverage: position.originalPosition.leverage,
-				price: entry.target,
-				amount: entry.amount,
-				type: "limit",
-			};
+			for (const entryNum in position.originalPosition.entries) {
+				const entry = position.originalPosition.entries[entryNum];
 
-			const orderId = await this.orderManager.createManagedOrder(orderSpec);
+				Log.positions.debug(
+					{
+						message: "Opening order for entry",
+						positionId: position._id,
+						entryNum: entryNum,
+						entry: entry
+					});
+
+				const orderSpec = {
+					exchange: position.originalPosition.exchange,
+					pair: position.originalPosition.pair,
+					direction: position.originalPosition.direction,
+					leverage: position.originalPosition.leverage,
+					price: entry.target,
+					amount: entry.amount,
+					type: "limit",
+				};
+
+				const orderId = await this.orderManager.createManagedOrder(orderSpec);
+				entryOrders.push(orderId);
+			}
 
 			// update position status
 			await this.database.updateManagedPosition(
 				position._id,
 				{
-					entryOrders: [ orderId ],
+					entryOrders: entryOrders,
 					status: Constants.PositionStatusEnum.ENTRIES_PLACED,
 				});
 
