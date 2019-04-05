@@ -1,7 +1,7 @@
 /**
  * constants, enums, etc. shared throughout the codebase
  */
-Constants = Object.freeze({
+const Constants = Object.freeze({
 
 	/**
 	 * The primary "lifecycle" status of an order
@@ -18,6 +18,7 @@ Constants = Object.freeze({
 	 */
 	PositionStatusEnum: Object.freeze({
 		UNINITIALIZED: "UNINITIALIZED",
+		ENTRIES_PLACED: "ENTRIES_PLACED",
 	}),
 
 	LOGGING_DIR: './log/',
