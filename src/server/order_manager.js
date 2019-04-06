@@ -4,6 +4,7 @@
  * make any necessary API calls to the exchange.
  */
 const assert = require('assert');
+const sleep = require('sleep');
 
 const Log = require('./logging');
 
@@ -18,7 +19,6 @@ class OrderManager {
 		this.orderPollingIntervalMS = 10000;
 
 		this.running = false;
-		this.timerId = null;
 	}
 
 	/**
@@ -33,11 +33,53 @@ class OrderManager {
 
 		this.running = true;
 
+		// start main order processing loop
+		setTimeout(async function() {
+			await that.processOrderLoop();
+		}, this.orderPollingIntervalMS);
+	}
 
-		this.timerId = setInterval(async function() {
-			Log.orders.debug("Order manager polling...");
+	/**
+	 * Internal order processing operations
+	 */
+	async processOrderLoop() {
+		Log.orders.debug("OrderManager.processOrderLoop() starting");
 
-			const openOrders = await that.database.listManagedOrders(
+		while(this.running) {
+			Log.orders.debug("OrderManager.processOrderLoop() iterating...");
+
+			// per loop, we operate only on one UNINITIALIZED or PLACEMENT_FAILED order, and we don't
+			// move on to the next until we are confident that it's been placed on the exchange.
+			// this will help keep track of orders that error during placement, which could result in
+			// duplicate orders being placed if not careful.
+
+			// we start with any PLACEMENT_FAILED orders and handle those before any UNINITIALIZED orders.
+			// TODO: should select the oldest order (e.g. add sort to query)
+			const erroredOrders = await this.database.listManagedOrders(
+					{closed: {$eq: false}, status: {$eq: Constants.OrderStatusEnum.PLACEMENT_FAILED}});
+			assert(erroredOrders.length == 0 || erroredOrders.length == 1);
+
+			if (erroredOrders.length > 0) {
+				// TODO: process here
+				await sleep.sleep(1);
+
+			} else {
+				// TODO: should select the oldest order (e.g. add sort to query)
+				const newOrders = await this.database.listManagedOrders(
+						{closed: {$eq: false}, status: {$eq: Constants.OrderStatusEnum.UNINITIALIZED}});
+
+				if (newOrders.length > 0) {
+					const order = newOrders[0];
+					this.handleNewOrder(order);
+					await sleep.sleep(1);
+				}
+			}
+
+			// every loop, we handle a single UNINITIALIZED/PLACEMENT_FAILED, as noted above, but we also
+			// evaluate every open order for updates.
+
+			// now check up on any open orders (see note about optimization below)
+			const openOrders = await this.database.listManagedOrders(
 					{closed: {$eq: false}});
 
 			// TODO: optimization: https://github.com/ccxt/ccxt/wiki/Manual#querying-orders
@@ -47,25 +89,28 @@ class OrderManager {
 
 			// handle any new orders
 			for (const order of openOrders) {
-				Log.orders.debug("Processing order ${order._id}");
+				Log.orders.debug("Processing order "+ order._id);
 				switch (order.status) {
 					case Constants.OrderStatusEnum.UNINITIALIZED:
-						// TODO: do we want async here? we probably want some specific number
-						//       of outstanding requests...
-						await that.handleNewOrder(order); 
+					case Constants.OrderStatusEnum.PLACEMENT_FAILED:
+						Log.orders.debug(`Order ${order._id} with status ${order.status} handled elsewhere`);
 						break;
 					case Constants.OrderStatusEnum.ORDER_REQUESTED:
-						await that.handleQueryOrderStatus(order);
+						await this.handleQueryOrderStatus(order);
 						break;
+					default:
+						Log.orders.debug(`Ignoring order ${order._id}, status ${order.status} is not yet handled`);
+						break;
+
 				}
 			}
 
-		}, this.orderPollingIntervalMS);
-	}
+			sleep.sleep(1);
+		}
 
-	/**
-	 * Internal order processing operations
-	 */
+		Log.orders.debug("OrderManager.processOrderLoop() stopping");
+
+	}
 	async handleNewOrder(order) {
 		try {
 			Log.orders.info("Processing new order: ", order);
@@ -92,24 +137,26 @@ class OrderManager {
 
 			Log.orders.info("*** Order sent to exchange, id: ", externalOrder.id);
 
+			// TODO: any other checks we should do here?
+
 			await this.database.updateManagedOrder(
 				order._id,
 				{
 					externalId: externalOrder.id,
 					status: Constants.OrderStatusEnum.ORDER_REQUESTED,
+					placed: true,
 				});
 
 		} catch(e) {
 			Log.orders.error(
 				{ 
-					message: "Caught exception while trying to open new order "+ order._id,
+					message: "Caught exception while trying to open new order "+ order._id
+							+ ", order status will become PLACEMENT_FAILED",
 					orderId: order._id,
 					error: e,
 				});
-			// TODO: be very careful here that we don't create multiple orders on the exchange.
-			//       at the time of this writing, we could do this if we successfully create an order
-			//       but fail to update the database
-			// TODO: Other cases we run into here: insufficient funds -- order should be updated accordingly
+
+
 		}
 	}
 	async handleQueryOrderStatus(order) {
@@ -177,6 +224,9 @@ class OrderManager {
 			//       1) not creating follow-up orders (e.g. stop loss)
 			//       2) creating duplicate orders
 			//       3) not acting fast enough, esp. in a volatile market
+			//
+			//       Should we track the number of failed queries we have and act when that number breaches
+			//       some threshold?
 		}
 	}
 
@@ -196,6 +246,7 @@ class OrderManager {
 			originalOrder: order,
 			createdTimestamp: new Date(),
 			status: Constants.OrderStatusEnum.UNINITIALIZED,
+			placed: false,
 			closed: false,
 			externalId: "",
 			filledAmount: 0.0,

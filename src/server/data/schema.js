@@ -53,6 +53,7 @@ Schema.orderSpec = Joi.object().keys({
  *     originalOrder: <orderSpec>     the original orderSpec object
  *     createdTimestamp: <date>       the time when this order was created
  *     status: <string>               the status of the order
+ *     placed: <bool>                 true if the order has been placed on the exchange
  *     closed: <bool>                 true if the exchange is done with the order
  *     externalId: <string>           the id assigned by the exchange for this order
  *     filledAmount: <float>          the amount of the order, in base currency, that has been filled
@@ -62,6 +63,7 @@ Schema.managedOrder = Joi.object().keys({
 	originalOrder: Schema.orderSpec.required(),
 	createdTimestamp: Joi.date().required(),
 	status: Joi.string().alphanum().required(), // TODO: enumerate values to validate against
+	placed: Joi.boolean().required(),
 	closed: Joi.boolean().required(),
 	externalId: Joi.string().alphanum().required().allow(''),
 	filledAmount: Joi.number().required(),
