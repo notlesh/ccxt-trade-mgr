@@ -8,6 +8,7 @@
     "blessed": "^0.1.81",
     "ccxt": "^1.18.288",
     "config": "^3.0.1",
+    "connect": "^3.7.0",
     "ethereumjs-abi": "^0.6.7",
     "ethereumjs-util": "^6.1.0",
     "jayson": "^2.1.2",

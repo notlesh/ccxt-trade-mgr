@@ -6,6 +6,9 @@
 const assert = require('assert');
 const jayson = require('jayson');
 const sleep = require('sleep');
+const cors = require('cors');
+const connect = require('connect');
+const jsonParser = require('body-parser').json;
 
 const Log = require('./logging');
 const Database = require('./data/database');
@@ -102,6 +105,12 @@ class Server {
 
 
 		});
+
+		this.app = connect();
+		this.app.use(cors({methods: ['POST']}));
+		this.app.use(jsonParser());
+		this.app.use(this.jsonRpcServer.middleware());
+
 		this.jsonRpcServer.on("request", (request) => {
 			Log.api.verbose({ subject: "received request", data: request });
 		});
@@ -116,7 +125,8 @@ class Server {
 		}
 
 		// TODO: consult config for port (and transport?) to listen on
-		this.jsonRpcServer.http().listen(5280);
+		// this.jsonRpcServer.http().listen(5280);
+		this.app.listen(5280);
 	}
 
 	stop() {
