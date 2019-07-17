@@ -94,6 +94,10 @@ class Server {
 				callback(null, {code: 200, message: ""+ id});
 			},
 
+			status: async function(args, callback) {
+				callback(null, {code: 200, message: "Running"});
+			},
+
 
 
 
