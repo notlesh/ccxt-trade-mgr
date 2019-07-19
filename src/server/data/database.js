@@ -80,7 +80,13 @@ class Database {
 				if (err) {
 					reject(err);
 				} else {
-					resolve(docs);
+					if (docs.length == 0) {
+						resolve(null);
+					} else if (docs.length == 1) {
+						resolve(docs[0]);
+					} else {
+						reject("Expected 0 or 1 result");
+					}
 				}
 			});
 		});
@@ -136,7 +142,13 @@ class Database {
 				if (err) {
 					reject(err);
 				} else {
-					resolve(docs);
+					if (docs.length == 0) {
+						resolve(null);
+					} else if (docs.length == 1) {
+						resolve(docs[0]);
+					} else {
+						reject("Expected 0 or 1 result");
+					}
 				}
 			});
 		});

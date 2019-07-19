@@ -28,7 +28,8 @@ function orderRoutes(server) {
 
 			const order = await server.orderManager.getManagedOrder(id);
 			if (! order) {
-				res.status(404).send("No order found with id ${id}");
+				res.status(404).send("No order found with id "+ id);
+				return;
 			}
 
 			res.json(order);

@@ -28,7 +28,8 @@ function positionRoutes(server) {
 
 			const position = await server.positionManager.getManagedPosition(id);
 			if (! position) {
-				res.status(404).send("No position found with id ${id}");
+				res.status(404).send("No position found with id "+ id);
+				return;
 			}
 
 			res.json(position);
