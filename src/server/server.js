@@ -13,6 +13,7 @@ const Config = require('./config');
 const OrderManager = require('./order_manager');
 const PositionManager = require('./position_manager');
 const JsonRpcApi = require('./api/json/json_rpc');
+import RestApi from './api/rest/rest_api';
 
 class Server {
 	constructor() {
@@ -44,6 +45,7 @@ class Server {
 		this.positionManager.start();
 
 		this.jsonRpcServer = new JsonRpcApi(this);
+		this.restApi = new RestApi(this);
 	}
 
 	start() {
@@ -52,6 +54,7 @@ class Server {
 		}
 
 		this.jsonRpcServer.start();
+		this.restApi.start();
 		this.running = true;
 	}
 
@@ -61,6 +64,7 @@ class Server {
 		}
 
 		this.jsonRpcServer.stop();
+		this.restApi.stop();
 		this.running = false;
 	}
 
