@@ -5,10 +5,6 @@
  */
 const assert = require('assert');
 const jayson = require('jayson');
-const sleep = require('sleep');
-const cors = require('cors');
-const connect = require('connect');
-const jsonParser = require('body-parser').json;
 
 const Log = require('./logging');
 const Database = require('./data/database');
@@ -16,6 +12,7 @@ const DataEngine = require('./ccxt_data_engine');
 const Config = require('./config');
 const OrderManager = require('./order_manager');
 const PositionManager = require('./position_manager');
+const JsonRpcApi = require('./api/json/json_rpc');
 
 class Server {
 	constructor() {
@@ -46,77 +43,7 @@ class Server {
 			this.orderManager);
 		this.positionManager.start();
 
-
-		// define JSON RPC functionality
-		this.jsonRpcServer = jayson.server({
-			getLatestPriceData: function(args, callback) {
-				callback(null, that.dataEngine.getLatestTickerData());
-			},
-
-			// position-related API 
-			listPositions: async function(args, callback) {
-				const positions = await that.positionManager.listOpenManagedPositions();
-				callback(null, {code: 200, message: positions});
-			},
-			getPosition: async function(args, callback) {
-
-				const id = args[0];
-				if (! id) {
-					callback({code: 400, message: 'id required'});
-					return;
-				}
-
-				const position = await that.positionManager.getManagedPosition(id);
-				callback(null, {code: 200, message: position});
-			},
-			openPosition: async function(args, callback) {
-				const position = args[0];
-				const id = await that.positionManager.openManagedPosition(position);
-				callback(null, {code: 200, message: ""+ id});
-			},
-
-			// order-related API 
-			listOrders: async function(args, callback) {
-				const orders = await that.orderManager.listOpenManagedOrders();
-				callback(null, {code: 200, message: orders});
-			},
-			getOrder: async function(args, callback) {
-
-				const id = args[0];
-				if (! id) {
-					callback({code: 400, message: 'id required'});
-					return;
-				}
-
-				const order = await that.orderManager.getManagedOrder(id);
-				callback(null, {code: 200, message: order});
-			},
-			createOrder: async function(args, callback) {
-				const order = args[0];
-				const id = await that.orderManager.createManagedOrder(order);
-				callback(null, {code: 200, message: ""+ id});
-			},
-
-			status: async function(args, callback) {
-				callback(null, {code: 200, message: "Running"});
-			},
-
-
-
-
-		});
-
-		this.app = connect();
-		this.app.use(cors({methods: ['POST']}));
-		this.app.use(jsonParser());
-		this.app.use(this.jsonRpcServer.middleware());
-
-		this.jsonRpcServer.on("request", (request) => {
-			Log.api.verbose({ subject: "received request", data: request });
-		});
-		this.jsonRpcServer.on("response", (request, response) => {
-			Log.api.verbose({ subject: "sent response", data: response });
-		});
+		this.jsonRpcServer = new JsonRpcApi(this);
 	}
 
 	start() {
@@ -124,13 +51,17 @@ class Server {
 			throw new Error("Server already running");
 		}
 
-		// TODO: consult config for port (and transport?) to listen on
-		// this.jsonRpcServer.http().listen(5280);
-		this.app.listen(5280);
+		this.jsonRpcServer.start();
+		this.running = true;
 	}
 
 	stop() {
-		throw new Error("Fixme!");
+		if (this.running) {
+			throw new Error("Server isn't running");
+		}
+
+		this.jsonRpcServer.stop();
+		this.running = false;
 	}
 
 	isRunning() {
