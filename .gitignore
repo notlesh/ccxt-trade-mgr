@@ -1,3 +1,4 @@
 config/local.json5
 node_modules/
 log/
+package-lock.json
