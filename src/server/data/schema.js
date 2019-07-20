@@ -125,5 +125,20 @@ Schema.managedPosition = Joi.object().keys({
 	stoplossOrders: Joi.array().items(Joi.string()),
 });
 
+/**
+ * UserDetails describe a user that is known to the system.
+ *
+ * userDetails = {
+ *     username: <string>                 unique username chosen by the user
+ *     email: <string>                    user's primary email, used for communication
+ *     passwordHash: <string>             hash of user's password
+ * };
+ */
+Schema.userDetails = Joi.object().keys({
+	username: Joi.string().alphanum().min(5).max(50).required(),
+	email: Joi.string().email({ minDomainSegments: 2 }),
+	passwordHash: Joi.string().required()
+});
+
 module.exports = Schema;
 
