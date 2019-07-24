@@ -107,6 +107,19 @@ const Log = {
 		],
 	}),
 
+	// user-related logging
+	users: winston.createLogger({
+		level: 'silly',
+		transports: [
+			combinedTransport,
+			consoleFile,
+			console,
+			new winston.transports.File({
+				format: logFileFormat,
+				filename: Constants.LOGGING_DIR + '/users.log'}),
+		],
+	}),
+
 	// log to console and combined
 	console: winston.createLogger({
 		level: 'silly',

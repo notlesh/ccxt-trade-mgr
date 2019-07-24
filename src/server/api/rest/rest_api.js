@@ -2,11 +2,13 @@
  * REST API
  */
 import express from 'express';
+import cors from 'cors';
 import bodyParser from 'body-parser';
 
 import Log from '../../logging';
 import orderRoutes from './order_routes';
 import positionRoutes from './position_routes';
+import userRoutes from './user_routes';
 
 const port = 5281;
 
@@ -21,10 +23,12 @@ class RestApi {
 		this.app = express();
 
 		// middleware
+		this.app.use(cors());
 		this.app.use(bodyParser.json());
 
 		this.app.use('/', orderRoutes(server));
 		this.app.use('/', positionRoutes(server));
+		this.app.use('/', userRoutes(server));
 	}
 
 	start() {

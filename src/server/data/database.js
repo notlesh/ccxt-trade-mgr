@@ -62,6 +62,7 @@ class Database {
 	primeCollections() {
 		this.dbCollections.managedOrders = this.db.collection("managedOrders");
 		this.dbCollections.managedPositions = this.db.collection("managedPositions");
+		this.dbCollections.userDetails = this.db.collection("userDetails");
 	}
 
 	/**
@@ -197,6 +198,25 @@ class Database {
 	}
 	async listManagedPositions(query = {}) {
 		return await this.listObjects("managedPositions", query);
+	}
+
+	/**
+	 * Operations on "userDetailss"
+	 */
+	async insertUserDetails(userDetails) {
+		return await this.insertObject("userDetails", userDetails, Schema.userDetails);
+	}
+	async getUserDetails(id) {
+		return await this.getObject("userDetails", id);
+	}
+	async updateUserDetails(id, userDetails) {
+		return await this.updateObject("userDetails", id, userDetails, Schema.userDetails);
+	}
+	async deleteUserDetails(id) {
+		return await this.deleteObject("userDetails", id);
+	}
+	async listUserDetails(query = {}) {
+		return await this.listObjects("userDetails", query);
 	}
 
 }

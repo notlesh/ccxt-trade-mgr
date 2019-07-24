@@ -12,6 +12,7 @@ const DataEngine = require('./ccxt_data_engine');
 const Config = require('./config');
 const OrderManager = require('./order_manager');
 const PositionManager = require('./position_manager');
+import UserManager from './user_manager';
 const JsonRpcApi = require('./api/json/json_rpc');
 import RestApi from './api/rest/rest_api';
 
@@ -43,6 +44,8 @@ class Server {
 			this.dataEngine,
 			this.orderManager);
 		this.positionManager.start();
+
+		this.userManager = new UserManager(this.database);
 
 		this.jsonRpcServer = new JsonRpcApi(this);
 		this.restApi = new RestApi(this);
